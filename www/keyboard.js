@@ -21,10 +21,10 @@
 
 var argscheck = require('cordova/argscheck'),
     utils = require('cordova/utils'),
-    exec = require('cordova/exec');
+    exec = require('cordova/exec'),
+    channel = require('cordova/channel');
    
-var Keyboard = function() {
-};
+var Keyboard = function() {};
 
 Keyboard.shrinkView = function(shrink, success) {
     if (shrink !== null && shrink !== undefined) {
@@ -102,5 +102,23 @@ Keyboard.hide = function() {
 
 Keyboard.isVisible = false;
 Keyboard.automaticScrollToTopOnHiding = false;
+
+channel.onCordovaReady.subscribe(function () {
+ 	exec(success, null, 'Keyboard', 'init', []);
+ 
+ 	function success(msg) {
+ 		var action = msg.charAt(0);
+ 		if (action === 'S') {
+ 			var keyboardHeight = msg.substr(1);
+ 			Keyboard.isVisible = true;
+ 			cordova.fireWindowEvent('keyboardDidShow', {
+ 				'keyboardHeight': +keyboardHeight
+ 			});
+ 		} else if (action === 'H') {
+ 			Keyboard.isVisible = false;
+ 			cordova.fireWindowEvent('keyboardDidHide');
+ 		}
+ 	}
+ });
 
 module.exports = Keyboard;
